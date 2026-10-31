@@ -74,6 +74,22 @@ class GoogleSheetConfig extends Model
     }
 
     /**
+     * Associated orders.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Associated contracts.
+     */
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(Contract::class);
+    }
+
+    /**
      * Parse and extract spreadsheet ID from a given URL or return raw ID.
      */
     public static function extractSpreadsheetId(string $urlOrId): string

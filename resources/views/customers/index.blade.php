@@ -178,8 +178,13 @@
                     @forelse($customers as $customer)
                         <tr class="transition-colors group {{ $customer->sync_status === 'pending_create' ? 'bg-amber-50/40 border-l-4 border-amber-400' : ($customer->sync_status === 'pending_update' ? 'bg-blue-50/30 border-l-4 border-blue-400' : 'border-l-4 border-transparent hover:bg-sky-50/40') }}">
                             <!-- Mã -->
-                            <td class="py-3 px-3 sm:px-4 font-mono font-bold text-sky-700 whitespace-nowrap">
-                                {{ $customer->code }}
+                            <td class="py-3 px-3 sm:px-4 whitespace-nowrap">
+                                <button type="button"
+                                        onclick='openEditModal(@json($customer))'
+                                        class="font-mono font-bold text-sky-700 hover:text-sky-900 hover:underline cursor-pointer text-left focus:outline-none"
+                                        title="Nhấn để sửa khách hàng {{ $customer->code }}">
+                                    {{ $customer->code }}
+                                </button>
                             </td>
 
                             <!-- Tên khách hàng -->

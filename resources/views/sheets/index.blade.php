@@ -82,6 +82,14 @@
                             <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                                 Sản phẩm ({{ $cfg->products_count }})
                             </span>
+                        @elseif($cfg->sheet_type === 'order')
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                Đơn hàng ({{ $cfg->orders_count }})
+                            </span>
+                        @elseif($cfg->sheet_type === 'contract')
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                                Hợp đồng ({{ $cfg->contracts_count }})
+                            </span>
                         @else
                             <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
                                 Tuỳ chỉnh
@@ -276,6 +284,8 @@
                             <option value="customer" {{ old('sheet_type') === 'customer' ? 'selected' : '' }}>Khách hàng</option>
                             <option value="supplier" {{ old('sheet_type') === 'supplier' ? 'selected' : '' }}>Nhà cung cấp / NPP</option>
                             <option value="product" {{ old('sheet_type') === 'product' ? 'selected' : '' }}>Sản phẩm</option>
+                            <option value="order" {{ old('sheet_type') === 'order' ? 'selected' : '' }}>Đơn hàng (Cột Mã mặc định: C)</option>
+                            <option value="contract" {{ old('sheet_type') === 'contract' ? 'selected' : '' }}>Hợp đồng (Cột Mã mặc định: A)</option>
                             <option value="custom" {{ old('sheet_type') === 'custom' ? 'selected' : '' }}>Tuỳ chỉnh / Khác</option>
                         </select>
                     </div>
@@ -395,6 +405,8 @@
                             <option value="customer">Khách hàng</option>
                             <option value="supplier">Nhà cung cấp / NPP</option>
                             <option value="product">Sản phẩm</option>
+                            <option value="order">Đơn hàng (Cột Mã mặc định: C)</option>
+                            <option value="contract">Hợp đồng (Cột Mã mặc định: A)</option>
                             <option value="custom">Tuỳ chỉnh / Khác</option>
                         </select>
                     </div>

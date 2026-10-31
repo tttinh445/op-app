@@ -43,6 +43,21 @@
                     Danh mục quản lý
                 </div>
 
+                 <!-- Đơn hàng -->
+                <a href="{{ route('orders.index') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 {{ (request()->routeIs('orders.*') || request()->routeIs('contracts.*')) ? 'bg-sky-50 text-sky-700 shadow-sm border border-sky-200/60' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}"
+                   title="Đơn hàng & Hợp đồng">
+                    <span class="p-1.5 rounded-lg {{ (request()->routeIs('orders.*') || request()->routeIs('contracts.*')) ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30' : 'bg-slate-100 text-slate-500' }} shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                    </span>
+                    <span class="sidebar-text whitespace-nowrap">Đơn hàng</span>
+                    @if(request()->routeIs('orders.*') || request()->routeIs('contracts.*'))
+                        <span class="sidebar-text ml-auto w-1.5 h-4 bg-sky-500 rounded-full"></span>
+                    @endif
+                </a>
+
                 <!-- Khách hàng -->
                 <a href="{{ route('customers.index') }}"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 {{ request()->routeIs('customers.*') ? 'bg-sky-50 text-sky-700 shadow-sm border border-sky-200/60' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}"
@@ -339,7 +354,11 @@
             const el = document.getElementById(id);
             if (el) {
                 el.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
+                // Only remove overflow-hidden if no other modals are open
+                const remainingOpenModals = document.querySelectorAll('.fixed.inset-0.z-50:not(.hidden)');
+                if (remainingOpenModals.length === 0) {
+                    document.body.classList.remove('overflow-hidden');
+                }
             }
         }
 
@@ -352,11 +371,47 @@
             form.action = url;
             titleEl.textContent = title || 'dòng dữ liệu';
             modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
         }
 
         function closeDeleteModal() {
-            document.getElementById('delete-confirm-modal').classList.add('hidden');
+            closeModal('delete-confirm-modal');
         }
+
+        // Close Modal / Popup on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                // 1. Close any open dropdown popups (autocomplete, dropdown menus, etc.)
+                const openDropdowns = document.querySelectorAll(
+                    '.customer-dropdown-menu:not(.hidden), .partner-dropdown-menu:not(.hidden), [data-dropdown-menu]:not(.hidden)'
+                );
+                if (openDropdowns.length > 0) {
+                    openDropdowns.forEach(dd => dd.classList.add('hidden'));
+                    return;
+                }
+
+                // 2. Close active modal dialog (including delete confirmation or form modals)
+                const openModals = document.querySelectorAll('.fixed.inset-0.z-50:not(.hidden)');
+                if (openModals.length > 0) {
+                    const activeModal = openModals[openModals.length - 1];
+                    closeModal(activeModal.id);
+                    return;
+                }
+
+                // 3. Close mobile sidebar drawer if open
+                if (sidebarBackdrop && !sidebarBackdrop.classList.contains('hidden')) {
+                    sidebar?.classList.add('-translate-x-full');
+                    sidebarBackdrop.classList.add('hidden');
+                }
+            }
+        });
+
+        // Close modal when clicking on the backdrop area outside the modal content
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.classList && e.target.classList.contains('fixed') && e.target.classList.contains('inset-0') && e.target.classList.contains('z-50') && !e.target.classList.contains('hidden')) {
+                closeModal(e.target.id);
+            }
+        });
 
         /**
          * Real-time duplicate code validation on blur.

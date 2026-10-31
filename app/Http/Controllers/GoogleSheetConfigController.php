@@ -19,7 +19,7 @@ class GoogleSheetConfigController extends Controller
      */
     public function index(): View
     {
-        $configs = GoogleSheetConfig::withCount(['customers', 'suppliers', 'products'])
+        $configs = GoogleSheetConfig::withCount(['customers', 'suppliers', 'products', 'orders', 'contracts'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -40,7 +40,7 @@ class GoogleSheetConfigController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'spreadsheet_url' => ['required', 'string'],
             'sheet_name' => ['required', 'string', 'max:255'],
-            'sheet_type' => ['required', Rule::in(['customer', 'supplier', 'product', 'custom'])],
+            'sheet_type' => ['required', Rule::in(['customer', 'supplier', 'product', 'order', 'contract', 'custom'])],
             'range' => ['nullable', 'string', 'max:50'],
             'primary_key_column' => ['nullable', 'string', 'max:10'],
             'sync_mode' => ['required', Rule::in(['csv_public', 'api_key', 'apps_script'])],
@@ -56,9 +56,9 @@ class GoogleSheetConfigController extends Controller
 
         $spreadsheetId = GoogleSheetConfig::extractSpreadsheetId($validated['spreadsheet_url']);
         $gid = GoogleSheetConfig::extractGid($validated['spreadsheet_url']);
-        $primaryKeyCol = strtoupper(trim((string) ($request->input('primary_key_column', 'A'))));
+        $primaryKeyCol = strtoupper(trim((string) ($request->input('primary_key_column', ''))));
         if ($primaryKeyCol === '') {
-            $primaryKeyCol = 'A';
+            $primaryKeyCol = ($validated['sheet_type'] ?? '') === 'order' ? 'C' : 'A';
         }
 
         $config = GoogleSheetConfig::create(array_merge($validated, [
@@ -100,7 +100,7 @@ class GoogleSheetConfigController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'spreadsheet_url' => ['required', 'string'],
             'sheet_name' => ['required', 'string', 'max:255'],
-            'sheet_type' => ['required', Rule::in(['customer', 'supplier', 'product', 'custom'])],
+            'sheet_type' => ['required', Rule::in(['customer', 'supplier', 'product', 'order', 'contract', 'custom'])],
             'range' => ['nullable', 'string', 'max:50'],
             'primary_key_column' => ['nullable', 'string', 'max:10'],
             'sync_mode' => ['required', Rule::in(['csv_public', 'api_key', 'apps_script'])],
@@ -112,9 +112,9 @@ class GoogleSheetConfigController extends Controller
 
         $spreadsheetId = GoogleSheetConfig::extractSpreadsheetId($validated['spreadsheet_url']);
         $gid = GoogleSheetConfig::extractGid($validated['spreadsheet_url']);
-        $primaryKeyCol = strtoupper(trim((string) ($request->input('primary_key_column', 'A'))));
+        $primaryKeyCol = strtoupper(trim((string) ($request->input('primary_key_column', ''))));
         if ($primaryKeyCol === '') {
-            $primaryKeyCol = 'A';
+            $primaryKeyCol = ($validated['sheet_type'] ?? '') === 'order' ? 'C' : 'A';
         }
 
         $sheetConfig->update(array_merge($validated, [

@@ -205,8 +205,13 @@
                     @forelse($products as $product)
                         <tr class="transition-colors group {{ $product->sync_status === 'pending_create' ? 'bg-amber-50/40 border-l-4 border-amber-400' : ($product->sync_status === 'pending_update' ? 'bg-blue-50/30 border-l-4 border-blue-400' : 'border-l-4 border-transparent hover:bg-sky-50/40') }}">
                             <!-- Mã (Mã SP) -->
-                            <td class="py-3 px-3 sm:px-4 font-mono font-bold text-sky-700 whitespace-nowrap">
-                                {{ $product->code }}
+                            <td class="py-3 px-3 sm:px-4 whitespace-nowrap">
+                                <button type="button"
+                                        onclick='openEditModal(@json($product))'
+                                        class="font-mono font-bold text-sky-700 hover:text-sky-900 hover:underline cursor-pointer text-left focus:outline-none"
+                                        title="Nhấn để sửa sản phẩm {{ $product->code }}">
+                                    {{ $product->code }}
+                                </button>
                             </td>
 
                             <!-- Mã danh mục -->

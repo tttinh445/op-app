@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Contracts\GoogleSheetSyncable;
+use App\Models\Contract;
 use App\Models\Customer;
 use App\Models\GoogleSheetConfig;
+use App\Models\Order;
 use App\Models\PendingSheetSync;
 use App\Models\Product;
 use App\Models\Supplier;
@@ -251,6 +253,56 @@ class GoogleSheetService
                             $imported++;
                         }
                         PendingSheetSync::where('sheet_type', 'product')
+                            ->where('code', $attributes['code'])
+                            ->update(['status' => 'synced']);
+                    } elseif ($config->sheet_type === 'order') {
+                        $attributes = Order::fromSheetRow($row);
+                        if (empty($attributes['code']) || empty($attributes['customer'])) {
+                            continue;
+                        }
+
+                        $order = Order::where('code', $attributes['code'])->first();
+                        if ($order) {
+                            $order->update(array_merge($attributes, [
+                                'google_sheet_config_id' => $config->id,
+                                'synced_at' => now(),
+                                'sync_status' => 'synced',
+                            ]));
+                            $updated++;
+                        } else {
+                            Order::create(array_merge($attributes, [
+                                'google_sheet_config_id' => $config->id,
+                                'synced_at' => now(),
+                                'sync_status' => 'synced',
+                            ]));
+                            $imported++;
+                        }
+                        PendingSheetSync::where('sheet_type', 'order')
+                            ->where('code', $attributes['code'])
+                            ->update(['status' => 'synced']);
+                    } elseif ($config->sheet_type === 'contract') {
+                        $attributes = Contract::fromSheetRow($row);
+                        if (empty($attributes['code']) || empty($attributes['partner'])) {
+                            continue;
+                        }
+
+                        $contract = Contract::where('code', $attributes['code'])->first();
+                        if ($contract) {
+                            $contract->update(array_merge($attributes, [
+                                'google_sheet_config_id' => $config->id,
+                                'synced_at' => now(),
+                                'sync_status' => 'synced',
+                            ]));
+                            $updated++;
+                        } else {
+                            Contract::create(array_merge($attributes, [
+                                'google_sheet_config_id' => $config->id,
+                                'synced_at' => now(),
+                                'sync_status' => 'synced',
+                            ]));
+                            $imported++;
+                        }
+                        PendingSheetSync::where('sheet_type', 'contract')
                             ->where('code', $attributes['code'])
                             ->update(['status' => 'synced']);
                     }
@@ -504,6 +556,12 @@ class GoogleSheetService
         } elseif ($config->sheet_type === 'product') {
             $headers = Product::sheetHeaders();
             $rows = Product::all()->map(fn ($p) => $p->toSheetRow())->all();
+        } elseif ($config->sheet_type === 'order') {
+            $headers = Order::sheetHeaders();
+            $rows = Order::all()->map(fn ($o) => $o->toSheetRow())->all();
+        } elseif ($config->sheet_type === 'contract') {
+            $headers = Contract::sheetHeaders();
+            $rows = Contract::all()->map(fn ($c) => $c->toSheetRow())->all();
         }
 
         $payload = [
@@ -541,6 +599,10 @@ class GoogleSheetService
             Supplier::query()->update(['sync_status' => 'synced', 'synced_at' => now()]);
         } elseif ($config->sheet_type === 'product') {
             Product::query()->update(['sync_status' => 'synced', 'synced_at' => now()]);
+        } elseif ($config->sheet_type === 'order') {
+            Order::query()->update(['sync_status' => 'synced', 'synced_at' => now()]);
+        } elseif ($config->sheet_type === 'contract') {
+            Contract::query()->update(['sync_status' => 'synced', 'synced_at' => now()]);
         }
         PendingSheetSync::where('sheet_type', $config->sheet_type)->update(['status' => 'synced']);
 
@@ -586,6 +648,10 @@ class GoogleSheetService
             Supplier::query()->update(['sync_status' => 'synced', 'synced_at' => now()]);
         } elseif ($config->sheet_type === 'product') {
             Product::query()->update(['sync_status' => 'synced', 'synced_at' => now()]);
+        } elseif ($config->sheet_type === 'order') {
+            Order::query()->update(['sync_status' => 'synced', 'synced_at' => now()]);
+        } elseif ($config->sheet_type === 'contract') {
+            Contract::query()->update(['sync_status' => 'synced', 'synced_at' => now()]);
         }
         PendingSheetSync::where('sheet_type', $config->sheet_type)->update(['status' => 'synced']);
 
@@ -627,6 +693,8 @@ class GoogleSheetService
             'customer' => Customer::where('sync_status', 'pending_create')->count(),
             'supplier' => Supplier::where('sync_status', 'pending_create')->count(),
             'product' => Product::where('sync_status', 'pending_create')->count(),
+            'order' => Order::where('sync_status', 'pending_create')->count(),
+            'contract' => Contract::where('sync_status', 'pending_create')->count(),
             default => 0,
         };
 
@@ -634,6 +702,8 @@ class GoogleSheetService
             'customer' => Customer::where('sync_status', 'pending_update')->count(),
             'supplier' => Supplier::where('sync_status', 'pending_update')->count(),
             'product' => Product::where('sync_status', 'pending_update')->count(),
+            'order' => Order::where('sync_status', 'pending_update')->count(),
+            'contract' => Contract::where('sync_status', 'pending_update')->count(),
             default => 0,
         };
 
@@ -671,6 +741,8 @@ class GoogleSheetService
             'customer' => Customer::where('sync_status', 'pending_create')->get(),
             'supplier' => Supplier::where('sync_status', 'pending_create')->get(),
             'product' => Product::where('sync_status', 'pending_create')->get(),
+            'order' => Order::where('sync_status', 'pending_create')->get(),
+            'contract' => Contract::where('sync_status', 'pending_create')->get(),
             default => collect(),
         };
 
@@ -678,6 +750,8 @@ class GoogleSheetService
             'customer' => Customer::where('sync_status', 'pending_update')->get(),
             'supplier' => Supplier::where('sync_status', 'pending_update')->get(),
             'product' => Product::where('sync_status', 'pending_update')->get(),
+            'order' => Order::where('sync_status', 'pending_update')->get(),
+            'contract' => Contract::where('sync_status', 'pending_update')->get(),
             default => collect(),
         };
 
@@ -954,6 +1028,14 @@ class GoogleSheetService
             return true;
         }
 
+        if ($type === 'order' && (str_contains($joined, 'mã') || str_contains($joined, 'ngày') || str_contains($joined, 'dấu thời gian') || str_contains($joined, 'khách hàng'))) {
+            return true;
+        }
+
+        if ($type === 'contract' && (str_contains($joined, 'mã') || str_contains($joined, 'số hđ') || str_contains($joined, 'đối tác') || str_contains($joined, 'hợp đồng'))) {
+            return true;
+        }
+
         return false;
     }
 
@@ -978,6 +1060,16 @@ class GoogleSheetService
             fputcsv($output, Product::sheetHeaders());
             foreach (Product::all() as $product) {
                 fputcsv($output, $product->toSheetRow());
+            }
+        } elseif ($type === 'order') {
+            fputcsv($output, Order::sheetHeaders());
+            foreach (Order::all() as $order) {
+                fputcsv($output, $order->toSheetRow());
+            }
+        } elseif ($type === 'contract') {
+            fputcsv($output, Contract::sheetHeaders());
+            foreach (Contract::all() as $contract) {
+                fputcsv($output, $contract->toSheetRow());
             }
         }
 

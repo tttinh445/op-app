@@ -74,6 +74,39 @@ class CustomerController extends Controller
     }
 
     /**
+     * Search customers for dropdown/combobox (server-side search).
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->input('q', ''));
+        $query = Customer::query()->select(['id', 'code', 'name', 'phone', 'email', 'tax_id']);
+
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('code', 'like', "%{$q}%")
+                    ->orWhere('phone', 'like', "%{$q}%")
+                    ->orWhere('tax_id', 'like', "%{$q}%");
+            });
+        }
+
+        $customers = $query->orderBy('name', 'asc')->limit(20)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $customers->map(fn ($c) => [
+                'id' => $c->id,
+                'code' => $c->code,
+                'name' => $c->name,
+                'phone' => $c->phone,
+                'email' => $c->email,
+                'tax_id' => $c->tax_id,
+                'display' => "{$c->name} ({$c->code})",
+            ]),
+        ]);
+    }
+
+    /**
      * Check if customer code already exists (for blur validation).
      */
     public function checkCode(Request $request): JsonResponse

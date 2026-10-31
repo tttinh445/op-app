@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\GoogleSheetConfigController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +17,7 @@ Route::get('/', function () {
 // Khách hàng (Customers)
 Route::prefix('customers')->name('customers.')->group(function () {
     Route::get('/', [CustomerController::class, 'index'])->name('index');
+    Route::get('/search', [CustomerController::class, 'search'])->name('search');
     Route::get('/check-code', [CustomerController::class, 'checkCode'])->name('check_code');
     Route::post('/', [CustomerController::class, 'store'])->name('store');
     Route::post('/sync', [CustomerController::class, 'sync'])->name('sync');
@@ -44,6 +47,28 @@ Route::prefix('products')->name('products.')->group(function () {
     Route::get('/{product}', [ProductController::class, 'show'])->name('show');
     Route::put('/{product}', [ProductController::class, 'update'])->name('update');
     Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+});
+
+// Đơn hàng (Orders)
+Route::prefix('orders')->name('orders.')->group(function () {
+    Route::get('/', [OrderController::class, 'index'])->name('index');
+    Route::get('/check-code', [OrderController::class, 'checkCode'])->name('check_code');
+    Route::post('/', [OrderController::class, 'store'])->name('store');
+    Route::post('/sync', [OrderController::class, 'sync'])->name('sync');
+    Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+    Route::put('/{order}', [OrderController::class, 'update'])->name('update');
+    Route::delete('/{order}', [OrderController::class, 'destroy'])->name('destroy');
+});
+
+// Hợp đồng (Contracts)
+Route::prefix('contracts')->name('contracts.')->group(function () {
+    Route::get('/', [ContractController::class, 'index'])->name('index');
+    Route::get('/check-code', [ContractController::class, 'checkCode'])->name('check_code');
+    Route::post('/', [ContractController::class, 'store'])->name('store');
+    Route::post('/sync', [ContractController::class, 'sync'])->name('sync');
+    Route::get('/{contract}', [ContractController::class, 'show'])->name('show');
+    Route::put('/{contract}', [ContractController::class, 'update'])->name('update');
+    Route::delete('/{contract}', [ContractController::class, 'destroy'])->name('destroy');
 });
 
 // Cấu hình Google Sheets (Google Sheet Configs)
