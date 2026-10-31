@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\GoogleSheetConfigController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
@@ -54,4 +55,21 @@ Route::prefix('sheets')->name('sheets.')->group(function () {
     Route::put('/{sheetConfig}', [GoogleSheetConfigController::class, 'update'])->name('update');
     Route::delete('/{sheetConfig}', [GoogleSheetConfigController::class, 'destroy'])->name('destroy');
     Route::post('/{sheetConfig}/sync', [GoogleSheetConfigController::class, 'sync'])->name('sync');
+});
+
+// Cài đặt (Settings)
+Route::prefix('settings')->name('settings.')->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('settings.employees.index');
+    })->name('index');
+
+    // Tab: Nhân viên (Employees)
+    Route::prefix('employees')->name('employees.')->group(function () {
+        Route::get('/', [EmployeeController::class, 'index'])->name('index');
+        Route::get('/check-code', [EmployeeController::class, 'checkCode'])->name('check_code');
+        Route::post('/', [EmployeeController::class, 'store'])->name('store');
+        Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show');
+        Route::put('/{employee}', [EmployeeController::class, 'update'])->name('update');
+        Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('destroy');
+    });
 });
